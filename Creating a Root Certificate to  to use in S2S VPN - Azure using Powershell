@@ -1,0 +1,28 @@
+# Define the name for the root certificate
+$rootCertName = "MSAlRootCert"
+
+# Define the certificate's validity period (in years)
+$validityYears = 10
+
+# Create the root certificate
+$rootCert = New-SelfSignedCertificate -Type Custom `
+    -KeySpec Signature `
+    -Subject "CN=$rootCertName" `
+    -KeyExportPolicy Exportable `
+    -HashAlgorithm sha256 `
+    -KeyLength 2048 `
+    -CertStoreLocation "Cert:\CurrentUser\My" `
+    -KeyUsageProperty Sign `
+    -KeyUsage CertSign `
+    -NotAfter (Get-Date).AddYears($validityYears)
+
+# Export the root certificate to a .cer file (public key)
+$rootCertPath = "$env:USERPROFILE\Desktop\$rootCertName.cer"
+Export-Certificate -Cert $rootCert -FilePath $rootCertPath
+
+# Export the root certificate with private key to a .pfx file (for backup)
+$rootCertPfxPath = "$env:USERPROFILE\Desktop\$rootCertName.pfx"
+$rootCertPassword = ConvertTo-SecureString -String "P@ssw0rd!" -Force -AsPlainText
+Export-PfxCertificate -Cert $rootCert -FilePath $rootCertPfxPath -Password $rootCertPassword
+
+Write-Output "Root certificate created and saved to: $rootCertPath and $rootCertPfxPath"
